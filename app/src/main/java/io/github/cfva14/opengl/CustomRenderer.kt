@@ -3,7 +3,7 @@ package io.github.cfva14.opengl
 import android.content.Context
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
-import android.opengl.Matrix.orthoM
+import android.opengl.Matrix.*
 import io.github.cfva14.opengl.utils.GLSLFileReader
 import io.github.cfva14.opengl.utils.ShaderHelper
 import java.nio.ByteBuffer
@@ -23,6 +23,7 @@ class CustomRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
     private var uMatrixLocation = 0
     private val projectionMatrix = FloatArray(16)
+    private val modelMatrix = FloatArray(16)
 
     private val table = floatArrayOf(
             // Triangle Fan
@@ -88,12 +89,14 @@ class CustomRenderer(private val context: Context) : GLSurfaceView.Renderer {
     override fun onSurfaceChanged(p0: GL10?, width: Int, height: Int) {
         glViewport(0, 0, width, height)
 
-        val aspectRatio = if (width > height) width.toFloat() / height.toFloat() else height.toFloat() / width.toFloat()
-        if (width > height) {
-            orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f)
-        } else {
-            orthoM(projectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f)
-        }
+        perspectiveM(projectionMatrix, 0, 45f, width.toFloat() / height.toFloat(), 1f, 10f)
+        setIdentityM(modelMatrix, 0)
+        translateM(modelMatrix, 0, 0f, 0f, -2.5f)
+        rotateM(modelMatrix, 0, -60f, 1f, 0f, 0f)
+
+        val temp = FloatArray(16)
+        multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0)
+        System.arraycopy(temp, 0, projectionMatrix, 0, temp.size)
     }
 
     override fun onDrawFrame(p0: GL10?) {
